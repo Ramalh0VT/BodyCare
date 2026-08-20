@@ -1,0 +1,53 @@
+REQUISITOS FUNCIONAIS
+
+Gestao de Agenda e Agendamentos
+
+O sistema deve permitir o agendamento de servicos com data, horario e cliente.
+
+O sistema deve controlar a disponibilidade dos funcionarios, impedindo a marcacao de mais clientes do que a capacidade de atendimento simultaneo (maximo de 2 atendimentos concorrentes).
+
+O sistema deve exibir visualmente a agenda diaria e semanal dos servicos.
+
+Controle e Gerenciamento de Estoque
+
+O sistema deve permitir o cadastro, edicao e exclusao de pecas e insumos.
+
+O sistema deve registrar a entrada e a saida de itens do estoque.
+
+O sistema deve emitir alertas quando o estoque de determinado item atingir um nivel minimo critical para evitar desbalanceamento.
+
+O sistema deve vincular as pecas utilizadas na manutencao diretamente ao historico da ordem de servico.
+
+Gestao de Ordens de Servico e Cronograma
+
+O sistema deve permitir a criacao de Ordens de Servico (OS) com o passo a passo da manutencao.
+
+O sistema deve permitir o acompanhamento do status do servico (ex: Aguardando, Em Andamento, Concluido).
+
+O sistema deve associar qual funcionario esta responsavel por qual ordem de servico.
+
+Relatorios e Indicadores
+
+O sistema deve gerar relatorios simples de servicos realizados por periodo.
+
+O sistema deve gerar relatorios de movimentacao de estoque e itens mais utilizados.
+
+REQUISITOS NAO FUNCIONAIS
+
+Restricoes Financeiras e de Escopo
+
+O custo total de desenvolvimento, implantacao e infraestrutura inicial nao deve exceder o orcamento limite de R$ 5.000,00.
+
+O software sera de uso interno e exclusivo da oficina, nao necessitando de portal publico para clientes neste momento.
+
+Usabilidade e Acessibilidade
+
+A interface deve ser simples, direta e intuitiva para facilitacao do uso diario pelos funcionarios sem necessidade de treinamentos complexos.
+
+O sistema deve ser acessivel via navegador web ou aplicativo desktop a partir dos computadores da oficina.
+
+Desempenho e Confiabilidade
+
+O sistema deve garantir a persistencia dos dados sem perda de informacoes de agendamentos ou historicos.
+
+O tempo de resposta para consultas simples de agenda e estoque deve ser imediato.

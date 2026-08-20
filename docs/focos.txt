@@ -1,0 +1,9 @@
+Foco de cada integrante:
+
+Nicolas:  Banco de dados
+
+Vitor: Front-end
+
+Lucas: Back-end
+
+Gustavo: Gerenciamento de tempo e do grupo 
