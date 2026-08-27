@@ -1,0 +1,44 @@
+Acesso
+
+RF01 — Login com perfil (Admin, Financeiro, Médico, Enfermeiro, Recepção, Cliente)
+RF02 — Cada perfil só acessa sua própria área
+Recepção
+
+RF03 — Registrar entrada/chegada do paciente
+RF04 — Marcar consulta e retorno (já tinha)
+Triagem — Enfermeiro
+
+RF05 — Classificar prioridade/gravidade do atendimento
+RF06 — Reorganizar fila automaticamente pela prioridade (já tinha)
+RF07 — Representar gravidade por cor (já tinha)
+Atendimento — Médico
+
+RF08 — Visualizar próximos atendimentos (já tinha)
+RF09 — Consultar histórico/prontuário do paciente
+RF10 — Registrar diagnóstico
+RF11 — Solicitar exames
+RF12 — Prescrever medicamentos
+RF13 — Encaminhar para internação
+RF14 — Dar alta
+RF15 — Marcar consulta como concluída (já tinha)
+Internação
+
+RF16 — Registrar e acompanhar internação (leito, evolução, custo)
+Cliente
+
+RF17 — Visualizar datas e agendamentos (já tinha)
+Financeiro
+
+RF18 — Pagamentos e dívidas de consultas/convênios (já tinha)
+RF19 — Valores de exame, convênio, internação e consulta (já tinha)
+RF20 — Gerenciar clientes conveniados (já tinha)
+Admin
+
+RF21 — CRUD de usuários (já tinha)
+Regras de negócio e requisitos não funcionais
+
+RN01 — Classificação de prioridade não pode falhar
+RN02 — Encaminhamento correto por especialidade
+RNF01 — Interface limpa, paleta quente, otimizada pra recepção e triagem
+RNF02 — Sistema estável e com menos erros em ~1 ano de uso
+RNF03 — Proteção de dados sensíveis de saúde / LGPD (não veio na entrevista, mas vale avaliar dado o tipo de dado)
