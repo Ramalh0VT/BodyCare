@@ -1,0 +1,40 @@
+Login
+
+5 tipos de usuários - Admin, financeiro, Médico, recepção e cliente
+
+    Setor admin 
+        CRUD de usuários
+
+    Setor financeiro
+
+        pagamentos e dívidas de consultas/conveniados
+
+        valores de exame, convênios, gastos de internação, consulta 
+
+        gerenciar clientes conveniados 
+
+    clientes
+
+        visualizar datas e de agendamentos.
+
+    Médico
+     visualizar próximos atendimentos
+     marcar consulta como concluída
+
+    Recepção
+        Marcar retorno e consultas para clientes
+        
+
+
+Setor financeiro e clínico separados
+
+Consultas
+
+    Classificação de prioridade de atendimentos conforme a gravidade da consulta 
+
+    Reorganização de fila com base na prioridade de atendimento da consulta
+
+    Representação visual com cores de cada gravidade
+
+
+
