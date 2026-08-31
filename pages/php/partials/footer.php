@@ -10,7 +10,7 @@
 		<footer>
 			<div class="footer_flex">
 				<div>
-					<img src="logo" alt="imagem da logo">
+					<img src="./imagens/body_care.png" width="250" alt="imagem da logo">
 					<p>Todos os direitos reservados à BodyCare</p>
 				</div>
 				<div>
