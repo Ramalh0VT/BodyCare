@@ -40,7 +40,7 @@ try {
 
 function read_nome_via_ID($pdo, $table, $id) {
 
-    $sql = "SELECT nome FROM $table WHERE id_user = :id";
+    $sql = "SELECT nome FROM $table WHERE id_user = $id";
 
     $stmt = $pdo->prepare($sql);
 
