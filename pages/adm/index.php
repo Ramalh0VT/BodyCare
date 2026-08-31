@@ -6,7 +6,15 @@
 	</head>	
 	<body>
 		<?php
-			$tabela_usuarios
+			$usuarios = []
+			$tabela_usuarios = ''
+			foreach($usuarios as $usuario){
+				$tabela_usuarios .= "<div> 
+					<h2>.$usuario.</h2>
+					<button></button>
+					</div>"
+			}
+			echo $tabela_usuarios
 		?>
 	</body>
 </html>
