@@ -4,11 +4,11 @@
 
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" href="./partials_css.css">
+	<link rel="stylesheet" href="partials.css">
 	</head>
 	<body>
 		<footer>
-			<div>
+			<div class="footer_flex">
 				<div>
 					<img src="logo" alt="imagem da logo">
 					<p>Todos os direitos reservados à BodyCare</p>
