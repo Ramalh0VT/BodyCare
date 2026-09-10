@@ -24,6 +24,6 @@
         
         <p class="texto-login">não possui uma conta? <br> faça cadastro para acessar sua área:</p>
             <a href="./pages/cadastro.php" class="btn-login">fazer cadastro</a>
-    </div>    
+    </div> 
 </body>
 </html>
