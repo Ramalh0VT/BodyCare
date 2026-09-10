@@ -41,7 +41,18 @@ function logout(): void
 function currentUser(): ?array
 {
     startApplicationSession();
-    return $_SESSION['user'] ?? null;
+    if (empty($_SESSION['user']['id'])) {
+        return null;
+    }
+    $statement = db()->prepare('SELECT id, nome, perfil, status FROM usuarios WHERE id = ? AND status = ? LIMIT 1');
+    $statement->execute([(int) $_SESSION['user']['id'], 'ativo']);
+    $user = $statement->fetch();
+    if (!$user) {
+        unset($_SESSION['user']);
+        return null;
+    }
+    $_SESSION['user'] = $user;
+    return $user;
 }
 
 function requireLogin(): array

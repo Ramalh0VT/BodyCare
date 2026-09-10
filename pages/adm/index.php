@@ -10,6 +10,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int) ($_POST['id'] ?? 0); $name = trim($_POST['nome'] ?? ''); $identifier = trim($_POST['identificador'] ?? ''); $profile = $_POST['perfil'] ?? '';
             if ($name === '' || $identifier === '' || !in_array($profile, ['admin', 'financeiro', 'medico', 'enfermeiro', 'recepcao', 'cliente'], true)) throw new InvalidArgumentException('Nome, identificador e perfil sao obrigatorios.');
             if ($id) {
+                $current = $database->prepare('SELECT perfil, status FROM usuarios WHERE id = ?'); $current->execute([$id]); $currentUser = $current->fetch();
+                if (!$currentUser) throw new InvalidArgumentException('Usuario nao encontrado.');
+                if ($currentUser['perfil'] === 'admin' && $currentUser['status'] === 'ativo' && $profile !== 'admin' && (int) $database->query("SELECT COUNT(*) FROM usuarios WHERE perfil = 'admin' AND status = 'ativo'")->fetchColumn() <= 1) throw new InvalidArgumentException('O ultimo administrador ativo nao pode perder o perfil.');
                 $database->prepare('UPDATE usuarios SET nome = ?, identificador = ?, perfil = ? WHERE id = ?')->execute([$name, $identifier, $profile, $id]);
                 if (strlen($_POST['senha'] ?? '') >= 6) $database->prepare('UPDATE usuarios SET senha_hash = ? WHERE id = ?')->execute([password_hash($_POST['senha'], PASSWORD_DEFAULT), $id]);
                 $message = 'Usuario atualizado.';
@@ -27,6 +30,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $database->prepare('UPDATE usuarios SET status = CASE status WHEN ? THEN ? ELSE ? END WHERE id = ?')->execute(['ativo', 'inativo', 'ativo', $id]); $message = 'Status atualizado.';
         } elseif ($action === 'delete') {
             $id = (int) $_POST['id']; if ($id === (int) $user['id']) throw new InvalidArgumentException('O usuario atual nao pode ser excluido.');
+            $target = $database->prepare('SELECT perfil, status FROM usuarios WHERE id = ?'); $target->execute([$id]); $targetUser = $target->fetch();
+            if (!$targetUser) throw new InvalidArgumentException('Usuario nao encontrado.');
+            if ($targetUser['perfil'] === 'admin' && $targetUser['status'] === 'ativo' && (int) $database->query("SELECT COUNT(*) FROM usuarios WHERE perfil = 'admin' AND status = 'ativo'")->fetchColumn() <= 1) throw new InvalidArgumentException('O ultimo administrador ativo nao pode ser excluido.');
+            $references = 0;
+            foreach (['agendamentos' => 'medico_id', 'chegadas' => 'recepcionista_id', 'triagens' => 'enfermeiro_id', 'atendimentos' => 'medico_id', 'evolucoes' => 'profissional_id', 'pagamentos' => 'responsavel_id'] as $table => $column) {
+                $reference = $database->prepare('SELECT COUNT(*) FROM ' . $table . ' WHERE ' . $column . ' = ?'); $reference->execute([$id]); $references += (int) $reference->fetchColumn();
+            }
+            if ($references > 0) throw new InvalidArgumentException('Usuario possui registros vinculados e nao pode ser excluido.');
             $database->prepare('DELETE FROM usuarios WHERE id = ?')->execute([$id]); $message = 'Usuario excluido quando nao havia dependencia ativa.';
         }
     } catch (Throwable $exception) { $message = 'Erro: ' . $exception->getMessage(); }

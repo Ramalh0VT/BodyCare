@@ -7,15 +7,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $action = $_POST['action'] ?? '';
         if ($action === 'charge') {
-            $amount = (float) ($_POST['valor_total'] ?? 0); if ($amount <= 0 || !(int) $_POST['cliente_id']) throw new InvalidArgumentException('Cliente e valor valido sao obrigatorios.');
-            $database->prepare('INSERT INTO cobrancas (cliente_id, tipo, referencia_id, valor_total) VALUES (?, ?, ?, ?)')->execute([(int) $_POST['cliente_id'], trim($_POST['tipo']), (int) ($_POST['referencia_id'] ?? 0), $amount]); $message = 'Cobranca registrada.';
+            $amount = (float) ($_POST['valor_total'] ?? 0); $clientId = (int) ($_POST['cliente_id'] ?? 0); $type = trim($_POST['tipo'] ?? '');
+            if ($amount <= 0 || !$clientId || $type === '') throw new InvalidArgumentException('Cliente, tipo e valor valido sao obrigatorios.');
+            $client = $database->prepare('SELECT id FROM clientes WHERE id = ?'); $client->execute([$clientId]); if (!$client->fetch()) throw new InvalidArgumentException('Cliente invalido.');
+            $database->prepare('INSERT INTO cobrancas (cliente_id, tipo, referencia_id, valor_total) VALUES (?, ?, ?, ?)')->execute([$clientId, $type, (int) ($_POST['referencia_id'] ?? 0), $amount]); $message = 'Cobranca registrada.';
         } elseif ($action === 'payment') {
-            $chargeId = (int) $_POST['cobranca_id']; $amount = (float) $_POST['valor']; if ($amount <= 0) throw new InvalidArgumentException('Valor de pagamento invalido.');
-            $database->beginTransaction(); $database->prepare('INSERT INTO pagamentos (cobranca_id, valor, forma, responsavel_id) VALUES (?, ?, ?, ?)')->execute([$chargeId, $amount, trim($_POST['forma']), $user['id']]); $database->prepare("UPDATE cobrancas SET valor_pago = valor_pago + ?, status = CASE WHEN valor_pago + ? >= valor_total THEN 'paga' ELSE 'parcial' END WHERE id = ?")->execute([$amount, $amount, $chargeId]); $database->commit(); $message = 'Pagamento registrado.';
+            $chargeId = (int) ($_POST['cobranca_id'] ?? 0); $amount = (float) ($_POST['valor'] ?? 0); $form = trim($_POST['forma'] ?? '');
+            if ($chargeId <= 0 || $amount <= 0 || $form === '') throw new InvalidArgumentException('Cobranca, valor e forma de pagamento sao obrigatorios.');
+            $charge = $database->prepare('SELECT valor_total, valor_pago, status FROM cobrancas WHERE id = ?'); $charge->execute([$chargeId]); $charge = $charge->fetch();
+            if (!$charge || $charge['status'] === 'paga') throw new InvalidArgumentException('Cobranca inexistente ou ja paga.');
+            $remaining = (float) $charge['valor_total'] - (float) $charge['valor_pago']; if ($amount > $remaining) throw new InvalidArgumentException('Pagamento maior que o saldo da cobranca.');
+            $database->beginTransaction(); $database->prepare('INSERT INTO pagamentos (cobranca_id, valor, forma, responsavel_id) VALUES (?, ?, ?, ?)')->execute([$chargeId, $amount, $form, $user['id']]); $database->prepare("UPDATE cobrancas SET valor_pago = valor_pago + ?, status = CASE WHEN valor_pago + ? >= valor_total THEN 'paga' ELSE 'parcial' END WHERE id = ?")->execute([$amount, $amount, $chargeId]); $database->commit(); $message = 'Pagamento registrado.';
         } elseif ($action === 'convenio') {
-            $database->prepare('INSERT INTO convenios (nome, registro, cobertura) VALUES (?, ?, ?)')->execute([trim($_POST['nome']), trim($_POST['registro']), (float) $_POST['cobertura']]); $message = 'Convenio cadastrado.';
+            $coverage = (float) ($_POST['cobertura'] ?? -1); if (trim($_POST['nome'] ?? '') === '' || trim($_POST['registro'] ?? '') === '' || $coverage < 0 || $coverage > 100) throw new InvalidArgumentException('Nome, registro e cobertura entre 0 e 100 sao obrigatorios.');
+            $database->prepare('INSERT INTO convenios (nome, registro, cobertura) VALUES (?, ?, ?)')->execute([trim($_POST['nome']), trim($_POST['registro']), $coverage]); $message = 'Convenio cadastrado.';
         } elseif ($action === 'link_convenio') {
-            $database->prepare('UPDATE clientes SET convenio_id = ? WHERE id = ?')->execute([(int) $_POST['convenio_id'], (int) $_POST['cliente_id']]); $message = 'Cliente vinculado ao convenio.';
+            $clientId = (int) ($_POST['cliente_id'] ?? 0); $convenioId = (int) ($_POST['convenio_id'] ?? 0); $check = $database->prepare('SELECT COUNT(*) FROM convenios WHERE id = ? AND status = ?'); $check->execute([$convenioId, 'ativo']);
+            if (!$clientId || !$convenioId || !(int) $check->fetchColumn()) throw new InvalidArgumentException('Cliente ou convenio invalido.');
+            $database->prepare('UPDATE clientes SET convenio_id = ? WHERE id = ?')->execute([$convenioId, $clientId]); $message = 'Cliente vinculado ao convenio.';
         }
     } catch (Throwable $exception) { if ($database->inTransaction()) $database->rollBack(); $message = 'Erro: ' . $exception->getMessage(); }
 }

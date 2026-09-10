@@ -85,6 +85,7 @@ CREATE TABLE IF NOT EXISTS triagens (
     chegada_id INTEGER NOT NULL UNIQUE,
     enfermeiro_id INTEGER NOT NULL,
     nivel TEXT NOT NULL CHECK (nivel IN ('emergencia','urgente','prioritario','eletivo')),
+    especialidade_encaminhada TEXT NOT NULL DEFAULT '',
     dados_clinicos TEXT,
     classificada_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     observacao TEXT,
@@ -151,15 +152,15 @@ CREATE TABLE IF NOT EXISTS cobrancas (
     cliente_id INTEGER NOT NULL,
     tipo TEXT NOT NULL,
     referencia_id INTEGER,
-    valor_total REAL NOT NULL,
-    valor_pago REAL NOT NULL DEFAULT 0,
+    valor_total DECIMAL(10,2) NOT NULL,
+    valor_pago DECIMAL(10,2) NOT NULL DEFAULT 0,
     status TEXT NOT NULL DEFAULT 'aberta',
     FOREIGN KEY (cliente_id) REFERENCES clientes(id)
 );
 CREATE TABLE IF NOT EXISTS pagamentos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     cobranca_id INTEGER NOT NULL,
-    valor REAL NOT NULL,
+    valor DECIMAL(10,2) NOT NULL,
     pago_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     forma TEXT NOT NULL,
     responsavel_id INTEGER NOT NULL,
@@ -168,8 +169,21 @@ CREATE TABLE IF NOT EXISTS pagamentos (
 );
 SQL);
 
+    addColumnIfMissing($connection, 'triagens', 'especialidade_encaminhada', "TEXT NOT NULL DEFAULT ''");
+
     seedDatabase($connection);
     $initialized = true;
+}
+
+function addColumnIfMissing(PDO $connection, string $table, string $column, string $definition): void
+{
+    $columns = $connection->query('PRAGMA table_info(' . $table . ')')->fetchAll();
+    foreach ($columns as $existingColumn) {
+        if ($existingColumn['name'] === $column) {
+            return;
+        }
+    }
+    $connection->exec('ALTER TABLE ' . $table . ' ADD COLUMN ' . $column . ' ' . $definition);
 }
 
 function seedDatabase(PDO $connection): void

@@ -7,7 +7,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $action = $_POST['action'] ?? '';
         if ($action === 'evolution') {
-            $database->prepare('INSERT INTO evolucoes (internacao_id, profissional_id, texto) VALUES (?, ?, ?)')->execute([(int) $_POST['internacao_id'], $user['id'], trim($_POST['texto'])]); $message = 'Evolucao registrada.';
+            $text = trim($_POST['texto'] ?? '');
+            if ($text === '') throw new InvalidArgumentException('Texto da evolucao obrigatorio.');
+            $database->prepare("INSERT INTO evolucoes (internacao_id, profissional_id, texto) SELECT id, ?, ? FROM internacoes WHERE id = ? AND status = 'aberta'")->execute([$user['id'], $text, (int) $_POST['internacao_id']]); $message = 'Evolucao registrada.';
         } elseif ($action === 'discharge') {
             $database->prepare("UPDATE internacoes SET alta_em = CURRENT_TIMESTAMP, status = 'alta' WHERE id = ? AND status = 'aberta'")->execute([(int) $_POST['internacao_id']]); $message = 'Alta da internacao registrada.';
         }
