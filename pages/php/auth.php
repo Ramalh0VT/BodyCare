@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 require_once __DIR__ . '/db.php';
 
 function startApplicationSession(): void
@@ -11,7 +9,7 @@ function startApplicationSession(): void
     }
 }
 
-function attemptLogin(string $identifier, string $password): bool
+function attemptLogin($identifier, $password): bool
 {
     startApplicationSession();
     $statement = db()->prepare('SELECT * FROM usuarios WHERE identificador = ? AND status = ? LIMIT 1');
@@ -38,7 +36,7 @@ function logout(): void
     session_destroy();
 }
 
-function currentUser(): ?array
+function currentUser()
 {
     startApplicationSession();
     if (empty($_SESSION['user']['id'])) {
@@ -75,7 +73,7 @@ function requireProfile(array $profiles): array
     return $user;
 }
 
-function redirectToProfile(string $profile): string
+function redirectToProfile($profile): string
 {
     $routes = [
         'admin' => 'adm/index.php',

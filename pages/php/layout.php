@@ -4,7 +4,10 @@ require_once __DIR__ . '/auth.php';
 function pageStart(string $title, array $user): void
 {
     echo '<!doctype html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>' . e($title) . '</title></head><body>';
-    $extraLink = in_array($user['perfil'], ['medico', 'enfermeiro'], true) ? ' | <a href="../int/index.php">Internacoes</a>' : '';
+    $extraLink = '';
+    if (in_array($user['perfil'], ['medico', 'enfermeiro'], true)) {
+        $extraLink = ' | <a href="../int/index.php">Internacoes</a>';
+    }
     echo '<header><h1>' . e($title) . '</h1><p>Usuario: ' . e($user['nome']) . ' | Perfil: ' . e($user['perfil']) . '</p><nav><a href="../' . e(redirectToProfile($user['perfil'])) . '">Inicio</a>' . $extraLink . ' | <a href="../logout.php">Sair</a></nav></header><main>';
 }
 

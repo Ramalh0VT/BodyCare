@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../php/layout.php';
+require_once __DIR__ . '/../php/crud.php';
 $user = requireProfile(['medico']);
 $database = db();
 $message = null;
@@ -15,6 +16,13 @@ function medicalAttendance(PDO $database, int $attendanceId, int $doctorId): arr
     return $attendance;
 }
 
+function editableMedicalAttendance(array $attendance): void
+{
+    if ($attendance['status'] !== 'em_atendimento') {
+        throw new InvalidArgumentException('Este atendimento ja foi concluido.');
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verifyCsrf();
     try {
@@ -27,30 +35,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $appointment = $statement->fetch();
             if (!$appointment) throw new InvalidArgumentException('Agendamento nao encontrado para este medico ou ja iniciado.');
             $database->beginTransaction();
-            $database->prepare('INSERT INTO atendimentos (agendamento_id, cliente_id, medico_id) VALUES (?, ?, ?)')->execute([$appointmentId, $appointment['cliente_id'], $user['id']]);
+            $database->prepare('INSERT INTO atendimentos (agendamento_id, cliente_id, medico_id, especialidade) VALUES (?, ?, ?, ?)')->execute([$appointmentId, $appointment['cliente_id'], $user['id'], $appointment['especialidade']]);
             $database->prepare('UPDATE agendamentos SET status = ? WHERE id = ? AND medico_id = ?')->execute(['em_atendimento', $appointmentId, $user['id']]);
             $database->commit();
             $message = 'Atendimento iniciado.';
         } elseif ($action === 'diagnosis') {
-            medicalAttendance($database, $attendanceId, $user['id']);
+            $attendance = medicalAttendance($database, $attendanceId, $user['id']); editableMedicalAttendance($attendance);
             $diagnosis = trim($_POST['diagnostico'] ?? '');
             if ($diagnosis === '') throw new InvalidArgumentException('Diagnostico obrigatorio.');
             $database->prepare('UPDATE atendimentos SET diagnostico = ? WHERE id = ? AND medico_id = ?')->execute([$diagnosis, $attendanceId, $user['id']]);
             $message = 'Diagnostico salvo.';
         } elseif ($action === 'exam') {
-            medicalAttendance($database, $attendanceId, $user['id']);
+            $attendance = medicalAttendance($database, $attendanceId, $user['id']); editableMedicalAttendance($attendance);
             $description = trim($_POST['descricao'] ?? '');
             if ($description === '' || !in_array($_POST['prioridade'] ?? '', ['normal', 'urgente'], true)) throw new InvalidArgumentException('Descricao e prioridade validas sao obrigatorias.');
             $database->prepare('INSERT INTO exames_solicitados (atendimento_id, descricao, prioridade, observacao) VALUES (?, ?, ?, ?)')->execute([$attendanceId, $description, $_POST['prioridade'], trim($_POST['observacao'] ?? '')]);
             $message = 'Exame solicitado.';
         } elseif ($action === 'prescription') {
-            medicalAttendance($database, $attendanceId, $user['id']);
+            $attendance = medicalAttendance($database, $attendanceId, $user['id']); editableMedicalAttendance($attendance);
             $fields = ['medicamento', 'dose', 'frequencia', 'duracao'];
             foreach ($fields as $field) if (trim($_POST[$field] ?? '') === '') throw new InvalidArgumentException('Todos os campos da prescricao sao obrigatorios.');
             $database->prepare('INSERT INTO prescricoes (atendimento_id, medicamento, dose, frequencia, duracao, instrucoes) VALUES (?, ?, ?, ?, ?, ?)')->execute([$attendanceId, trim($_POST['medicamento']), trim($_POST['dose']), trim($_POST['frequencia']), trim($_POST['duracao']), trim($_POST['instrucoes'] ?? '')]);
             $message = 'Medicamento prescrito.';
         } elseif ($action === 'discharge') {
             $attendance = medicalAttendance($database, $attendanceId, $user['id']);
+            editableMedicalAttendance($attendance);
             $discharge = trim($_POST['alta'] ?? '');
             if (!$attendance['diagnostico'] || $discharge === '') throw new InvalidArgumentException('Diagnostico e orientacoes de alta sao obrigatorios.');
             $database->beginTransaction();
@@ -59,9 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $database->commit();
             $message = 'Alta registrada e consulta concluida.';
         } elseif ($action === 'admission') {
-            medicalAttendance($database, $attendanceId, $user['id']);
-            $bed = trim($_POST['leito'] ?? ''); $reason = trim($_POST['motivo'] ?? ''); $cost = (float) ($_POST['custo'] ?? -1);
-            if ($bed === '' || $reason === '' || $cost < 0) throw new InvalidArgumentException('Leito, motivo e custo valido sao obrigatorios.');
+            $attendance = medicalAttendance($database, $attendanceId, $user['id']); editableMedicalAttendance($attendance);
+            $bed = trim($_POST['leito'] ?? ''); $reason = trim($_POST['motivo'] ?? ''); $costCents = moneyToCents($_POST['custo'] ?? '0');
+            if ($bed === '' || $reason === '' || $costCents < 0) throw new InvalidArgumentException('Leito, motivo e custo valido sao obrigatorios.');
+            $cost = centsToMoney($costCents);
             $database->prepare('INSERT INTO internacoes (paciente_id, atendimento_id, leito, motivo, custo) SELECT cliente_id, id, ?, ?, ? FROM atendimentos WHERE id = ? AND medico_id = ? AND status <> ?')->execute([$bed, $reason, $cost, $attendanceId, $user['id'], 'concluido']);
             $message = 'Internacao registrada.';
         }
@@ -71,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$appointments = $database->prepare("SELECT a.*, u.nome AS cliente FROM agendamentos a JOIN clientes c ON c.id = a.cliente_id JOIN usuarios u ON u.id = c.usuario_id WHERE a.medico_id = ? AND a.status IN ('agendada','chegou','em_triagem') ORDER BY a.inicio");
+$appointments = $database->prepare("SELECT a.*, u.nome AS cliente FROM agendamentos a JOIN clientes c ON c.id = a.cliente_id JOIN usuarios u ON u.id = c.usuario_id LEFT JOIN chegadas ch ON ch.agendamento_id = a.id LEFT JOIN triagens t ON t.chegada_id = ch.id WHERE a.medico_id = ? AND a.status IN ('agendada', 'chegou', 'em_triagem') ORDER BY CASE t.nivel WHEN 'emergencia' THEN 1 WHEN 'urgente' THEN 2 WHEN 'prioritario' THEN 3 WHEN 'eletivo' THEN 4 ELSE 5 END, a.inicio");
 $appointments->execute([$user['id']]);
 $appointments = $appointments->fetchAll();
 $attendances = $database->prepare('SELECT atd.*, u.nome AS cliente FROM atendimentos atd JOIN clientes c ON c.id = atd.cliente_id JOIN usuarios u ON u.id = c.usuario_id WHERE atd.medico_id = ? ORDER BY atd.inicio DESC');
