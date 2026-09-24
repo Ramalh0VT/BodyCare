@@ -1,9 +1,12 @@
 PRAGMA foreign_keys = ON;
 
+-- Esse esquema deve ser usado com a migração idempotente em pages/php/db.php,
+-- que converte bancos legados com a coluna identificador para email antes da aplicação iniciar.
+
 CREATE TABLE IF NOT EXISTS usuarios (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nome TEXT NOT NULL,
-    identificador TEXT NOT NULL UNIQUE,
+    email TEXT NOT NULL UNIQUE,
     senha_hash TEXT NOT NULL,
     perfil TEXT NOT NULL CHECK (perfil IN ('admin', 'financeiro', 'medico', 'enfermeiro', 'recepcao', 'cliente')),
     status TEXT NOT NULL DEFAULT 'ativo' CHECK (status IN ('ativo', 'inativo')),
@@ -172,18 +175,18 @@ CREATE INDEX IF NOT EXISTS idx_triagens_nivel ON triagens (nivel, classificada_e
 CREATE INDEX IF NOT EXISTS idx_cobrancas_status ON cobrancas (status, cliente_id);
 CREATE INDEX IF NOT EXISTS idx_evolucoes_internacao ON evolucoes (internacao_id, registrada_em);
 
-INSERT OR IGNORE INTO usuarios (nome, identificador, senha_hash, perfil, status)
+INSERT OR IGNORE INTO usuarios (nome, email, senha_hash, perfil, status)
 VALUES ('Administrador', 'admin@bodycare.local', '$2y$10$aqGVGRC5mdtHect8HV6lwu.jKOdXG.mKfMlVXgyEnxwXU/1MbuekG', 'admin', 'ativo');
-INSERT OR IGNORE INTO usuarios (nome, identificador, senha_hash, perfil, status)
+INSERT OR IGNORE INTO usuarios (nome, email, senha_hash, perfil, status)
 VALUES ('Financeiro', 'financeiro@bodycare.local', '$2y$10$aqGVGRC5mdtHect8HV6lwu.jKOdXG.mKfMlVXgyEnxwXU/1MbuekG', 'financeiro', 'ativo');
-INSERT OR IGNORE INTO usuarios (nome, identificador, senha_hash, perfil, status)
+INSERT OR IGNORE INTO usuarios (nome, email, senha_hash, perfil, status)
 VALUES ('Medico', 'medico@bodycare.local', '$2y$10$aqGVGRC5mdtHect8HV6lwu.jKOdXG.mKfMlVXgyEnxwXU/1MbuekG', 'medico', 'ativo');
-INSERT OR IGNORE INTO usuarios (nome, identificador, senha_hash, perfil, status)
+INSERT OR IGNORE INTO usuarios (nome, email, senha_hash, perfil, status)
 VALUES ('Enfermeiro', 'enfermeiro@bodycare.local', '$2y$10$aqGVGRC5mdtHect8HV6lwu.jKOdXG.mKfMlVXgyEnxwXU/1MbuekG', 'enfermeiro', 'ativo');
-INSERT OR IGNORE INTO usuarios (nome, identificador, senha_hash, perfil, status)
+INSERT OR IGNORE INTO usuarios (nome, email, senha_hash, perfil, status)
 VALUES ('Recepcao', 'recepcao@bodycare.local', '$2y$10$aqGVGRC5mdtHect8HV6lwu.jKOdXG.mKfMlVXgyEnxwXU/1MbuekG', 'recepcao', 'ativo');
-INSERT OR IGNORE INTO usuarios (nome, identificador, senha_hash, perfil, status)
+INSERT OR IGNORE INTO usuarios (nome, email, senha_hash, perfil, status)
 VALUES ('Cliente demonstracao', 'cliente@bodycare.local', '$2y$10$aqGVGRC5mdtHect8HV6lwu.jKOdXG.mKfMlVXgyEnxwXU/1MbuekG', 'cliente', 'ativo');
 
 INSERT OR IGNORE INTO clientes (usuario_id, telefone)
-SELECT id, '0000-0000' FROM usuarios WHERE identificador = 'cliente@bodycare.local';
+SELECT id, '0000-0000' FROM usuarios WHERE email = 'cliente@bodycare.local';

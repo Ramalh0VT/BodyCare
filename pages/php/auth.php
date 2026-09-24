@@ -9,11 +9,12 @@ function startApplicationSession(): void
     }
 }
 
-function attemptLogin($identifier, $password): bool
+function attemptLogin($email, $password): bool
 {
     startApplicationSession();
-    $statement = db()->prepare('SELECT * FROM usuarios WHERE identificador = ? AND status = ? LIMIT 1');
-    $statement->execute([$identifier, 'ativo']);
+    $email = trim((string) $email);
+    $statement = db()->prepare('SELECT * FROM usuarios WHERE email = ? AND status = ? LIMIT 1');
+    $statement->execute([$email, 'ativo']);
     $user = $statement->fetch();
     if (!$user || !password_verify($password, $user['senha_hash'])) {
         return false;

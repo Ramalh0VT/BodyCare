@@ -4,7 +4,7 @@ require_once __DIR__ . '/db.php';
 
 function listUsers($database): array
 {
-    return $database->query('SELECT id, nome, identificador, perfil, status FROM usuarios ORDER BY nome')->fetchAll();
+    return $database->query('SELECT id, nome, email, perfil, status FROM usuarios ORDER BY nome')->fetchAll();
 }
 
 function findUser($database, $userId)

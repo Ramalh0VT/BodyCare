@@ -37,7 +37,6 @@ Sem o comando `sqlite3`, abra `database/bodycare.sql` em uma ferramenta grafica 
 O PHP apenas abre o arquivo existente. Ele nao cria tabelas automaticamente. Para recriar um banco de teste, apague o arquivo e execute o SQL novamente:
 
 ```powershell
-Remove-Item pages/php/data/bodycare.sqlite
 sqlite3 pages/php/data/bodycare.sqlite ".read database/bodycare.sql"
 ```
 
@@ -62,7 +61,7 @@ Abra no navegador:
 
 Todos os usuarios abaixo usam a senha `123456`:
 
-| Identificador | Perfil | Area |
+| E-mail | Perfil | Area |
 |---|---|---|
 | `admin@bodycare.local` | admin | `pages/adm/index.php` |
 | `financeiro@bodycare.local` | financeiro | `pages/fin/index.php` |
@@ -114,7 +113,7 @@ sqlite3 pages/php/data/bodycare.sqlite ".tables"
 Para conferir usuarios e perfis:
 
 ```powershell
-sqlite3 -header -column pages/php/data/bodycare.sqlite "SELECT id, nome, identificador, perfil, status FROM usuarios;"
+sqlite3 -header -column pages/php/data/bodycare.sqlite "SELECT id, nome, email, perfil, status FROM usuarios;"
 ```
 
 Para conferir a fila clinica:
@@ -127,10 +126,10 @@ Neste ambiente de desenvolvimento, os comandos `php` e `sqlite3` podem nao estar
 
 ## 8. Erros comuns
 
-- **Banco ausente:** execute novamente `database/bodycare.sql` em `pages/php/data/bodycare.sqlite`.
+- **Banco ausente:** execute novamente `database/bodycare.sql` em `pages/php/data/bodycare.sqlite` ou deixe a aplicacao criar o banco via `pages/php/db.php` e a migracao idempotente.
 - **Tabela inexistente:** o arquivo foi criado vazio ou o SQL foi executado parcialmente; recrie o banco de teste.
 - **`could not find driver`:** habilite `pdo_sqlite` no PHP.
-- **Login invalido:** confirme o identificador, a senha `123456` e se o usuario esta `ativo`.
+- **Login invalido:** confirme o e-mail, a senha `123456` e se o usuario esta `ativo`.
 - **Horario indisponivel:** o mesmo medico ja possui agendamento ativo naquele horario.
 - **Acesso negado:** cada perfil possui uma area propria; use o usuario correto.
 - **Formulario expirado:** recarregue a pagina para obter um novo token CSRF.
