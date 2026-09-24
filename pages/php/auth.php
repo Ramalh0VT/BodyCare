@@ -4,19 +4,33 @@ require_once __DIR__ . '/db.php';
 
 function startApplicationSession(): void
 {
-    if (session_status() !== PHP_SESSION_ACTIVE) {
-        session_start();
+    if (php_sapi_name() === 'cli') {
+        return;
     }
+
+    if (session_status() === PHP_SESSION_ACTIVE || headers_sent()) {
+        return;
+    }
+
+    session_start();
 }
 
 function attemptLogin($email, $password): bool
 {
-    startApplicationSession();
     $email = trim((string) $email);
     $statement = db()->prepare('SELECT * FROM usuarios WHERE email = ? AND status = ? LIMIT 1');
     $statement->execute([$email, 'ativo']);
     $user = $statement->fetch();
     if (!$user || !password_verify($password, $user['senha_hash'])) {
+        return false;
+    }
+
+    if (php_sapi_name() === 'cli') {
+        return true;
+    }
+
+    startApplicationSession();
+    if (session_status() !== PHP_SESSION_ACTIVE) {
         return false;
     }
 
@@ -32,13 +46,23 @@ function attemptLogin($email, $password): bool
 
 function logout(): void
 {
+    if (php_sapi_name() === 'cli') {
+        return;
+    }
+
     startApplicationSession();
     $_SESSION = [];
-    session_destroy();
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_destroy();
+    }
 }
 
 function currentUser()
 {
+    if (php_sapi_name() === 'cli') {
+        return null;
+    }
+
     startApplicationSession();
     if (empty($_SESSION['user']['id'])) {
         return null;
