@@ -104,7 +104,7 @@ function redirectToProfile($profile): string
         'admin' => 'adm/index.php',
         'financeiro' => 'fin/index.php',
         'medico' => 'med/index.php',
-        'enfermeiro' => 'tri/index.php',
+        'enfermeiro' => 'med/index.php',
         'recepcao' => 'rec/index.php',
         'cliente' => 'pac/index.php',
     ];

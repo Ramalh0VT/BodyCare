@@ -65,9 +65,9 @@ Todos os usuarios abaixo usam a senha `123456`:
 |---|---|---|
 | `admin@bodycare.local` | admin | `pages/adm/index.php` |
 | `financeiro@bodycare.local` | financeiro | `pages/fin/index.php` |
-| `medico@bodycare.local` | medico | `pages/med/index.php` |
-| `enfermeiro@bodycare.local` | enfermeiro | `pages/tri/index.php` |
-| `recepcao@bodycare.local` | recepcao | `pages/rec/index.php` |
+| `medico@bodycare.local` | medico | `pages/med/index.php` | 
+| `enfermeiro@bodycare.local` | enfermeiro | `pages/med/index.php` |
+| `recepcao@bodycare.local` | recepcao | `pages/rec/index.php` | 
 | `cliente@bodycare.local` | cliente | `pages/pac/index.php` |
 
 Use esses dados somente em ambiente de teste. Nao coloque dados reais de pacientes neste banco de demonstracao.
@@ -80,15 +80,13 @@ Use esses dados somente em ambiente de teste. Nao coloque dados reais de pacient
 4. Crie um agendamento escolhendo cliente, medico, especialidade, data, hora e tipo.
 5. Tente criar outro agendamento para o mesmo medico e horario. O sistema deve informar que o horario esta indisponivel.
 6. Registre a chegada informando o motivo.
-7. Saia e entre como enfermeiro. A chegada deve aparecer na fila.
-8. Informe dados clinicos, especialidade e nivel. A fila deve mostrar a gravidade por texto e ordenar emergencia antes de urgente, prioritario e eletivo.
-9. Saia e entre como medico. O atendimento classificado deve aparecer antes dos demais conforme prioridade e horario.
-10. Inicie o atendimento, registre diagnostico, solicite exame e prescreva medicamento.
-11. Encaminhe para internacao com leito, motivo e custo, ou registre orientacoes de alta para concluir a consulta.
-12. Entre como enfermeiro ou medico em Internacoes, registre evolucao e altere leito/status. Depois da alta, uma nova evolucao deve ser recusada.
-13. Entre como financeiro, crie uma cobranca, registre um pagamento parcial e confirme que o status ficou `parcial` e que o saldo continua aberto.
-14. Cadastre ou edite convenio e vincule-o a um cliente com numero e vigencia.
-15. Entre como cliente. Apenas os agendamentos do cliente autenticado devem aparecer.
+7. Saia e entre como enfermeiro ou medico. O profissional pode iniciar e acompanhar o atendimento a partir do painel correspondente.
+8. Inicie o atendimento, registre diagnostico, solicite exame e prescreva medicamento.
+9. Encaminhe para internacao com leito, motivo e custo, ou registre orientacoes de alta para concluir a consulta.
+10. Entre como enfermeiro ou medico em Internacoes, registre evolucao e altere leito/status. Depois da alta, uma nova evolucao deve ser recusada.
+11. Entre como financeiro, crie uma cobranca, registre um pagamento parcial e confirme que o status ficou `parcial` e que o saldo continua aberto.
+12. Cadastre ou edite convenio e vincule-o a um cliente com numero e vigencia.
+13. Entre como cliente. Apenas os agendamentos do cliente autenticado devem aparecer.
 
 ## 6. Testar acesso negado
 
@@ -116,10 +114,10 @@ Para conferir usuarios e perfis:
 sqlite3 -header -column pages/php/data/bodycare.sqlite "SELECT id, nome, email, perfil, status FROM usuarios;"
 ```
 
-Para conferir a fila clinica:
+Para conferir as chegadas registradas:
 
 ```powershell
-sqlite3 -header -column pages/php/data/bodycare.sqlite "SELECT c.id, t.nivel, c.chegada_em FROM chegadas c LEFT JOIN triagens t ON t.chegada_id = c.id ORDER BY CASE t.nivel WHEN 'emergencia' THEN 1 WHEN 'urgente' THEN 2 WHEN 'prioritario' THEN 3 WHEN 'eletivo' THEN 4 ELSE 5 END, c.chegada_em;"
+sqlite3 -header -column pages/php/data/bodycare.sqlite "SELECT id, agendamento_id, cliente_id, chegada_em, motivo FROM chegadas ORDER BY chegada_em;"
 ```
 
 Neste ambiente de desenvolvimento, os comandos `php` e `sqlite3` podem nao estar no `PATH`. Nesse caso, instale PHP com PDO SQLite e SQLite, reabra o terminal e repita os comandos. A validacao estatica ainda pode conferir os arquivos, mas a sintaxe e os fluxos web precisam de um ambiente PHP real.

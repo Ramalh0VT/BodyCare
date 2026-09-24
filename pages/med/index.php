@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../php/layout.php';
 require_once __DIR__ . '/../php/crud.php';
-$user = requireProfile(['medico']);
+$user = requireProfile(['medico', 'enfermeiro']);
 $database = db();
 $message = null;
 
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $attendanceId = (int) ($_POST['atendimento_id'] ?? 0);
         if ($action === 'start') {
             $appointmentId = (int) ($_POST['agendamento_id'] ?? 0);
-            $statement = $database->prepare("SELECT * FROM agendamentos WHERE id = ? AND medico_id = ? AND status IN ('agendada','chegou','em_triagem') LIMIT 1");
+            $statement = $database->prepare("SELECT * FROM agendamentos WHERE id = ? AND medico_id = ? AND status IN ('agendada','chegou') LIMIT 1");
             $statement->execute([$appointmentId, $user['id']]);
             $appointment = $statement->fetch();
             if (!$appointment) throw new InvalidArgumentException('Agendamento não encontrado para este médico ou já iniciado.');
@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$appointments = $database->prepare("SELECT a.*, u.nome AS cliente FROM agendamentos a JOIN clientes c ON c.id = a.cliente_id JOIN usuarios u ON u.id = c.usuario_id LEFT JOIN chegadas ch ON ch.agendamento_id = a.id LEFT JOIN triagens t ON t.chegada_id = ch.id WHERE a.medico_id = ? AND a.status IN ('agendada', 'chegou', 'em_triagem') ORDER BY CASE t.nivel WHEN 'emergencia' THEN 1 WHEN 'urgente' THEN 2 WHEN 'prioritario' THEN 3 WHEN 'eletivo' THEN 4 ELSE 5 END, a.inicio");
+$appointments = $database->prepare("SELECT a.*, u.nome AS cliente FROM agendamentos a JOIN clientes c ON c.id = a.cliente_id JOIN usuarios u ON u.id = c.usuario_id WHERE a.medico_id = ? AND a.status IN ('agendada', 'chegou') ORDER BY a.inicio");
 $appointments->execute([$user['id']]);
 $appointments = $appointments->fetchAll();
 $attendances = $database->prepare('SELECT atd.*, u.nome AS cliente FROM atendimentos atd JOIN clientes c ON c.id = atd.cliente_id JOIN usuarios u ON u.id = c.usuario_id WHERE atd.medico_id = ? ORDER BY atd.inicio DESC');

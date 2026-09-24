@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $database->prepare('INSERT INTO chegadas (agendamento_id, cliente_id, recepcionista_id, motivo, observacao) VALUES (?, ?, ?, ?, ?)')->execute([$appointmentId, $appointment['cliente_id'], $user['id'], $reason, trim($_POST['observacao'] ?? '')]);
             $database->prepare("UPDATE agendamentos SET status = 'chegou' WHERE id = ?")->execute([$appointmentId]);
             $database->commit();
-            $message = 'Chegada registrada e enviada para triagem.';
+            $message = 'Chegada registrada.';
         } elseif ($action === 'cancel') {
             $reason = trim($_POST['motivo_cancelamento'] ?? '');
             if ($reason === '') {

@@ -43,9 +43,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 $admissions = $database->query("SELECT i.*, u.nome AS paciente FROM internacoes i JOIN clientes c ON c.id = i.paciente_id JOIN usuarios u ON u.id = c.usuario_id ORDER BY CASE i.status WHEN 'aberta' THEN 1 ELSE 2 END, i.entrada_em DESC")->fetchAll();
 pageStart('Acompanhamento de internações', $user); if ($message) echo '<p role="status">' . e($message) . '</p>';
-echo '<table><tr><th>Paciente</th><th>Leito</th><th>Entrada</th><th>Status</th><th>Motivo</th><th>Custo</th><th>Ações</th></tr>';
+echo '<table><tr><th>ID</th><th>Paciente</th><th>Leito</th><th>Entrada</th><th>Status</th><th>Motivo</th><th>Custo</th><th>Ações</th></tr>';
 foreach ($admissions as $item) {
-    echo '<tr><td>' . e($item['paciente']) . '</td><td>' . e($item['leito']) . '</td><td>' . e($item['entrada_em']) . '</td><td>' . e($item['status']) . '</td><td>' . e($item['motivo']) . '</td><td>' . e($item['custo']) . '</td><td>';
+    echo '<tr><td>' . e($item['id']) . '</td><td>' . e($item['paciente']) . '</td><td>' . e($item['leito']) . '</td><td>' . e($item['entrada_em']) . '</td><td>' . e($item['status']) . '</td><td>' . e($item['motivo']) . '</td><td>' . e($item['custo']) . '</td><td>';
     if ($item['status'] === 'aberta') {
         echo '<form method="post"><input type="hidden" name="csrf" value="' . e(csrfToken()) . '"><input type="hidden" name="internacao_id" value="' . e($item['id']) . '"><textarea name="texto" required></textarea><button name="action" value="evolution">Registrar evolução</button></form><form method="post"><input type="hidden" name="csrf" value="' . e(csrfToken()) . '"><input type="hidden" name="internacao_id" value="' . e($item['id']) . '"><button name="action" value="discharge">Registrar alta</button></form>';
     }

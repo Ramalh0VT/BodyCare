@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$targetUser) throw new InvalidArgumentException('Usuário não encontrado.');
             if ($targetUser['perfil'] === 'admin' && $targetUser['status'] === 'ativo' && (int) $database->query("SELECT COUNT(*) FROM usuarios WHERE perfil = 'admin' AND status = 'ativo'")->fetchColumn() <= 1) throw new InvalidArgumentException('O último administrador ativo não pode ser excluído.');
             $references = 0;
-            foreach (['agendamentos' => 'medico_id', 'chegadas' => 'recepcionista_id', 'triagens' => 'enfermeiro_id', 'atendimentos' => 'medico_id', 'evolucoes' => 'profissional_id', 'pagamentos' => 'responsavel_id'] as $table => $column) {
+            foreach (['agendamentos' => 'medico_id', 'chegadas' => 'recepcionista_id', 'atendimentos' => 'medico_id', 'evolucoes' => 'profissional_id', 'pagamentos' => 'responsavel_id'] as $table => $column) {
                 $reference = $database->prepare('SELECT COUNT(*) FROM ' . $table . ' WHERE ' . $column . ' = ?'); $reference->execute([$id]); $references += (int) $reference->fetchColumn();
             }
             if ($references > 0) throw new InvalidArgumentException('Usuário possui registros vinculados e não pode ser excluído.');

@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS agendamentos (
     especialidade TEXT NOT NULL,
     tipo TEXT NOT NULL CHECK (tipo IN ('consulta', 'retorno')),
     inicio TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'agendada' CHECK (status IN ('agendada', 'chegou', 'em_triagem', 'em_atendimento', 'concluida', 'cancelada')),
+    status TEXT NOT NULL DEFAULT 'agendada' CHECK (status IN ('agendada', 'chegou', 'em_atendimento', 'concluida', 'cancelada')),
     observacao TEXT,
     FOREIGN KEY (cliente_id) REFERENCES clientes(id),
     FOREIGN KEY (medico_id) REFERENCES usuarios(id)
@@ -57,19 +57,6 @@ CREATE TABLE IF NOT EXISTS chegadas (
     FOREIGN KEY (agendamento_id) REFERENCES agendamentos(id),
     FOREIGN KEY (cliente_id) REFERENCES clientes(id),
     FOREIGN KEY (recepcionista_id) REFERENCES usuarios(id)
-);
-
-CREATE TABLE IF NOT EXISTS triagens (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    chegada_id INTEGER NOT NULL UNIQUE,
-    enfermeiro_id INTEGER NOT NULL,
-    nivel TEXT NOT NULL CHECK (nivel IN ('emergencia', 'urgente', 'prioritario', 'eletivo')),
-    dados_clinicos TEXT NOT NULL,
-    classificada_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    especialidade_encaminhada TEXT NOT NULL,
-    observacao TEXT,
-    FOREIGN KEY (chegada_id) REFERENCES chegadas(id),
-    FOREIGN KEY (enfermeiro_id) REFERENCES usuarios(id)
 );
 
 CREATE TABLE IF NOT EXISTS atendimentos (
@@ -171,7 +158,6 @@ CREATE TABLE IF NOT EXISTS pagamentos (
 CREATE INDEX IF NOT EXISTS idx_agendamentos_medico_inicio ON agendamentos (medico_id, inicio, status);
 CREATE INDEX IF NOT EXISTS idx_agendamentos_cliente_inicio ON agendamentos (cliente_id, inicio);
 CREATE INDEX IF NOT EXISTS idx_chegadas_status ON chegadas (chegada_em);
-CREATE INDEX IF NOT EXISTS idx_triagens_nivel ON triagens (nivel, classificada_em);
 CREATE INDEX IF NOT EXISTS idx_cobrancas_status ON cobrancas (status, cliente_id);
 CREATE INDEX IF NOT EXISTS idx_evolucoes_internacao ON evolucoes (internacao_id, registrada_em);
 
