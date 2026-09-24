@@ -35,7 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php formField('Senha', 'senha', 'password'); ?>
                 <button type="submit">Entrar</button>
             </form>
-            <p class="muted">Usuarios de demonstracao usam a senha <strong>123456</strong>.</p>
         </section>
     </main>
 </body>
