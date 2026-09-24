@@ -11,8 +11,8 @@
         <div class="container">
             <div class="parent">
                 <div class="div1">
-                    <h1>bem vindo(a)!</h1>
-                    <p>preencha as informações a seguir e se cadastre:</p>
+                    <h1>Bem-vindo(a)!</h1>
+                    <p>Preencha as informações a seguir e cadastre-se:</p>
                     <img src="../imagens/body_care.png" alt="logo" class="logo">
                 </div>
                 <div class="div2">
@@ -21,7 +21,7 @@
                         <label>Telefone: <input type="tel" name="telefone" placeholder="Telefone"></label>
                         <label>E-mail: <input type="email" name="email" placeholder="E-mail"></label>
                         <label>Senha: <input type="password" name="senha" placeholder="Senha"></label>
-                        <button type="submit" onclick="alert('cadastro realizado com sucesso!')">Enviar cadastro</button>
+                        <button type="submit" onclick="alert('Cadastro realizado com sucesso!')">Enviar cadastro</button>
                     </form>
                 </div>
             </div>

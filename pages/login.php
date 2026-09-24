@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header('Location: ' . redirectToProfile(currentUser()['perfil']));
         exit;
     }
-    $error = 'E-mail, senha ou status invalidos.';
+    $error = 'E-mail, senha ou status inválidos.';
 }
 ?>
 <!doctype html>

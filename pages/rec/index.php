@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $type = $_POST['tipo'] ?? '';
 
             if ($clientId <= 0 || $doctorId <= 0 || $start === '' || $specialty === '' || !in_array($type, ['consulta', 'retorno'], true)) {
-                throw new InvalidArgumentException('Cliente, medico, data, especialidade e tipo validos sao obrigatorios.');
+                throw new InvalidArgumentException('Cliente, médico, data, especialidade e tipo válidos são obrigatórios.');
             }
 
             $clientCheck = $database->prepare('SELECT id FROM clientes WHERE id = ?');
@@ -29,19 +29,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $doctorCheck = $database->prepare("SELECT id FROM usuarios WHERE id = ? AND perfil = 'medico' AND status = 'ativo'");
             $doctorCheck->execute([$doctorId]);
             if (!$clientCheck->fetch() || !$doctorCheck->fetch()) {
-                throw new InvalidArgumentException('Cliente ou medico invalido.');
+                throw new InvalidArgumentException('Cliente ou médico inválido.');
             }
 
             $conflict = $database->prepare("SELECT COUNT(*) FROM agendamentos WHERE medico_id = ? AND inicio = ? AND id <> ? AND status NOT IN ('cancelada', 'concluida')");
             $conflict->execute([$doctorId, $start, $action === 'reschedule' ? $appointmentId : 0]);
             if ((int) $conflict->fetchColumn() > 0) {
-                throw new InvalidArgumentException('Horario indisponivel para este medico.');
+                throw new InvalidArgumentException('Horário indisponível para este médico.');
             }
 
             if ($action === 'reschedule') {
                 $statement = $database->prepare("UPDATE agendamentos SET cliente_id = ?, medico_id = ?, especialidade = ?, tipo = ?, inicio = ?, observacao = ? WHERE id = ? AND status NOT IN ('concluida', 'cancelada')");
                 $statement->execute([$clientId, $doctorId, $specialty, $type, $start, trim($_POST['observacao'] ?? ''), $appointmentId]);
-                $message = $statement->rowCount() ? 'Agendamento remarcado.' : 'Agendamento nao encontrado ou encerrado.';
+                $message = $statement->rowCount() ? 'Agendamento remarcado.' : 'Agendamento não encontrado ou encerrado.';
             } else {
                 $statement = $database->prepare('INSERT INTO agendamentos (cliente_id, medico_id, especialidade, tipo, inicio, observacao) VALUES (?, ?, ?, ?, ?, ?)');
                 $statement->execute([$clientId, $doctorId, $specialty, $type, $start, trim($_POST['observacao'] ?? '')]);
@@ -50,13 +50,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($action === 'arrival') {
             $reason = trim($_POST['motivo'] ?? '');
             if ($reason === '') {
-                throw new InvalidArgumentException('O motivo da chegada e obrigatorio.');
+                throw new InvalidArgumentException('O motivo da chegada é obrigatório.');
             }
             $statement = $database->prepare("SELECT cliente_id FROM agendamentos WHERE id = ? AND status = 'agendada'");
             $statement->execute([$appointmentId]);
             $appointment = $statement->fetch();
             if (!$appointment) {
-                throw new InvalidArgumentException('Agendamento nao encontrado ou indisponivel.');
+                throw new InvalidArgumentException('Agendamento não encontrado ou indisponível.');
             }
 
             $database->beginTransaction();
@@ -67,11 +67,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($action === 'cancel') {
             $reason = trim($_POST['motivo_cancelamento'] ?? '');
             if ($reason === '') {
-                throw new InvalidArgumentException('Motivo do cancelamento obrigatorio.');
+                throw new InvalidArgumentException('Motivo do cancelamento obrigatório.');
             }
             $statement = $database->prepare("UPDATE agendamentos SET status = 'cancelada', observacao = ? WHERE id = ? AND status NOT IN ('concluida', 'cancelada')");
             $statement->execute([$reason, $appointmentId]);
-            $message = $statement->rowCount() ? 'Consulta cancelada.' : 'Consulta nao encontrada ou ja encerrada.';
+            $message = $statement->rowCount() ? 'Consulta cancelada.' : 'Consulta não encontrada ou já encerrada.';
         }
     } catch (Throwable $exception) {
         if ($database->inTransaction()) {
@@ -85,16 +85,16 @@ $clients = listClients($database);
 $doctors = listDoctors($database);
 $appointments = $database->query("SELECT a.*, client.nome AS cliente, doctor.nome AS medico FROM agendamentos a JOIN clientes c ON c.id = a.cliente_id JOIN usuarios client ON client.id = c.usuario_id JOIN usuarios doctor ON doctor.id = a.medico_id ORDER BY a.inicio")->fetchAll();
 
-pageStart('Recepcao e agenda', $user);
+pageStart('Recepção e agenda', $user);
 if ($message) {
     echo '<p role="status">' . e($message) . '</p>';
 }
-echo '<h2>Agenda</h2><table><tr><th>Cliente</th><th>Medico</th><th>Inicio</th><th>Tipo</th><th>Especialidade</th><th>Status</th><th>Acoes</th></tr>';
+echo '<h2>Agenda</h2><table><tr><th>Cliente</th><th>Médico</th><th>Início</th><th>Tipo</th><th>Especialidade</th><th>Status</th><th>Ações</th></tr>';
 foreach ($appointments as $item) {
     echo '<tr><td>' . e($item['cliente']) . '</td><td>' . e($item['medico']) . '</td><td>' . e($item['inicio']) . '</td><td>' . e($item['tipo']) . '</td><td>' . e($item['especialidade']) . '</td><td>' . e($item['status']) . '</td><td>';
     if ($item['status'] === 'agendada') {
-        echo '<form method="post"><input type="hidden" name="csrf" value="' . e(csrfToken()) . '"><input type="hidden" name="action" value="arrival"><input type="hidden" name="agendamento_id" value="' . e($item['id']) . '"><input name="motivo" placeholder="Motivo da chegada" required><input name="observacao" placeholder="Observacao"><button type="submit">Registrar chegada</button></form>';
-        echo '<form method="post"><input type="hidden" name="csrf" value="' . e(csrfToken()) . '"><input type="hidden" name="action" value="reschedule"><input type="hidden" name="agendamento_id" value="' . e($item['id']) . '"><input type="hidden" name="cliente_id" value="' . e($item['cliente_id']) . '"><input type="hidden" name="tipo" value="' . e($item['tipo']) . '"><input name="medico_id" type="number" value="' . e($item['medico_id']) . '" required><input name="inicio" type="datetime-local" value="' . e(str_replace(' ', 'T', $item['inicio'])) . '" required><input name="especialidade" value="' . e($item['especialidade']) . '" required><input name="observacao" placeholder="Observacao"><button type="submit">Remarcar</button></form>';
+        echo '<form method="post"><input type="hidden" name="csrf" value="' . e(csrfToken()) . '"><input type="hidden" name="action" value="arrival"><input type="hidden" name="agendamento_id" value="' . e($item['id']) . '"><input name="motivo" placeholder="Motivo da chegada" required><input name="observacao" placeholder="Observação"><button type="submit">Registrar chegada</button></form>';
+        echo '<form method="post"><input type="hidden" name="csrf" value="' . e(csrfToken()) . '"><input type="hidden" name="action" value="reschedule"><input type="hidden" name="agendamento_id" value="' . e($item['id']) . '"><input type="hidden" name="cliente_id" value="' . e($item['cliente_id']) . '"><input type="hidden" name="tipo" value="' . e($item['tipo']) . '"><input name="medico_id" type="number" value="' . e($item['medico_id']) . '" required><input name="inicio" type="datetime-local" value="' . e(str_replace(' ', 'T', $item['inicio'])) . '" required><input name="especialidade" value="' . e($item['especialidade']) . '" required><input name="observacao" placeholder="Observação"><button type="submit">Remarcar</button></form>';
         echo '<form method="post"><input type="hidden" name="csrf" value="' . e(csrfToken()) . '"><input type="hidden" name="action" value="cancel"><input type="hidden" name="agendamento_id" value="' . e($item['id']) . '"><input name="motivo_cancelamento" placeholder="Motivo" required><button type="submit">Cancelar</button></form>';
     }
     echo '</td></tr>';
@@ -103,14 +103,14 @@ echo '</table><h2>Novo agendamento</h2><form method="post"><input type="hidden" 
 foreach ($clients as $client) {
     echo '<option value="' . e($client['id']) . '">' . e($client['nome']) . '</option>';
 }
-echo '</select></label><br><label>Medico: <select name="medico_id" required><option value="">Selecione</option>';
+echo '</select></label><br><label>Médico: <select name="medico_id" required><option value="">Selecione</option>';
 foreach ($doctors as $doctor) {
     echo '<option value="' . e($doctor['id']) . '">' . e($doctor['nome']) . '</option>';
 }
 echo '</select></label><br>';
-formField('Inicio', 'inicio', 'datetime-local');
+formField('Início', 'inicio', 'datetime-local');
 formField('Especialidade', 'especialidade');
 echo '<label>Tipo: <select name="tipo" required><option value="">Selecione</option><option value="consulta">consulta</option><option value="retorno">retorno</option></select></label><br>';
-formField('Observacao', 'observacao', 'text', '', false);
+formField('Observação', 'observacao', 'text', '', false);
 echo '<button type="submit">Agendar</button></form>';
 pageEnd();
